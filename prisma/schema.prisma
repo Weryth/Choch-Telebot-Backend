@@ -19,6 +19,7 @@ model User {
   updatedAt DateTime  @updatedAt @map("updated_at")
   roles     Role[]
   Token     Token[]
+  bots      Bots[]
   isBlocked Boolean   @default(false) @map("is_blocked")
 
   @@map("users")
@@ -33,6 +34,28 @@ model Token {
 
   @@map("tokens")
 }
+
+model Bots {
+  id        String    @id @default(uuid())
+  bottoken  String    @unique
+  botname   String    @default("Bot")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  isActive  Boolean   @default(false)
+  quests Questions[]
+}
+
+model Questions {
+  id String @id @default(uuid())
+  quest String
+  answer String
+  createdAt DateTime  @default(now()) @map("created_at")
+  bot Bots @relation(fields: [botId],references: [id])
+  botId String
+}
+
 
 enum Role {
   ADMIN

@@ -1,12 +1,16 @@
+import { createBotDto } from '@auth/dto/createbot.dto';
 import { JwtPayload } from '@auth/interfaces';
 import { convertToSecondsUtil } from '@common/utils';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Role, User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { genSaltSync, hashSync } from 'bcrypt';
 import { Cache } from 'cache-manager';
+import { BotTokenDTO } from './user.dto/userbottoken.dto';
+import { Telegraf } from 'telegraf';
+import { QuestDTO } from './user.dto/quest.dto';
 
 @Injectable()
 export class UserService {
@@ -71,4 +75,61 @@ export class UserService {
     private hashPassword(password: string) {
         return hashSync(password, genSaltSync(10));
     }
+
+    async createBot(botData: createBotDto, userPayload: JwtPayload){
+        try {
+            const bot = await this.prismaService.bots.create({
+                data: {
+                    bottoken: botData.bottoken,
+                    botname: botData.botname, 
+                    userId: userPayload.id
+                }
+            })
+            if(bot){
+                return new HttpException(JSON.stringify(bot), HttpStatus.OK)
+            }
+            
+        } catch (error) {
+            throw new HttpException(`Ошибка в создании бота: ${error}`, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    async checkAllBots(userPayload: JwtPayload){
+        console.log(userPayload.id)
+        return await this.prismaService.bots.findMany({
+            where:{userId: userPayload.id}
+        })
+    }
+
+    async checkValidTgToken(check: BotTokenDTO) {
+        const bot = new Telegraf(check.token);
+        try {
+            await bot.telegram.getMe();  
+            return HttpStatus.OK;
+        } catch (error) {
+            if (error.code === 401) {  // Проверка на код ошибки 401
+                throw new HttpException("Token is not valid", HttpStatus.NOT_FOUND);
+            } else {
+                throw new HttpException("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+    }
+    
+    /*async createQuest(userPayload: JwtPayload, questData: QuestDTO){
+        try {
+            const bot = await this.prismaService.questions.create({
+                data: {
+                    quest: questData.quest,
+                    answer: questData.answer,
+                    botId: questData.botID
+                }
+            })
+            if(bot){
+                return new HttpException(JSON.stringify(bot), HttpStatus.OK)
+            }
+            
+        } catch (error) {
+            throw new HttpException(`Ошибка в создании бота: ${error}`, HttpStatus.BAD_REQUEST)
+        }
+    }*/
 }
