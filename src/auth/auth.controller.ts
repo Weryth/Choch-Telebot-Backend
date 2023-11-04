@@ -26,6 +26,7 @@ import { Tokens } from './interfaces';
 import { handleTimeoutAndErrors } from '@common/helpers';
 import { YandexGuard } from './guargs/yandex.guard';
 import { Provider } from '@prisma/client';
+import { ForgotPasswordDto } from './dto/forgotPass.dto';
 
 const REFRESH_TOKEN = 'refreshtoken';
 
@@ -140,5 +141,15 @@ export class AuthController {
             map((data) => this.setRefreshTokenToCookies(data, res)),
             handleTimeoutAndErrors(),
         );
+    }
+
+    @Post('forgot-password')
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto, @Res() res: Response) {
+        try {
+            await this.authService.forgotPassword(forgotPasswordDto.email);
+            res.status(HttpStatus.OK).json({ message: 'Инструкции по сбросу пароля отправлены на вашу почту.' });
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
     }
 }

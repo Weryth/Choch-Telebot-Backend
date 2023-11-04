@@ -11,6 +11,7 @@ import { Cache } from 'cache-manager';
 import { BotTokenDTO } from './user.dto/userbottoken.dto';
 import { Telegraf } from 'telegraf';
 import { QuestDTO } from './user.dto/quest.dto';
+import { BotRef } from 'src/bot_ref/bot.class.create';
 
 @Injectable()
 export class UserService {
@@ -85,6 +86,10 @@ export class UserService {
                     userId: userPayload.id
                 }
             })
+            const createBotFile = new BotRef()
+            createBotFile.CreateBotFile(botData.bottoken, bot.id)
+
+            
             if(bot){
                 return new HttpException(JSON.stringify(bot), HttpStatus.OK)
             }
@@ -114,7 +119,19 @@ export class UserService {
             }
         }
     }
+    async resetPasswordDirectly(userId: string, newPassword: string): Promise<User> {
+        const hashedPassword = this.hashPassword(newPassword);
     
+        try {
+            const user = await this.prismaService.user.update({
+                where: { id: userId },
+                data: { password: hashedPassword },
+            });
+            return user;
+        } catch (error) {
+            throw new HttpException('Ошибка при обновлении пароля', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     /*async createQuest(userPayload: JwtPayload, questData: QuestDTO){
         try {
             const bot = await this.prismaService.questions.create({

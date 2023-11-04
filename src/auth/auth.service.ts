@@ -15,6 +15,7 @@ import { add } from 'date-fns';
 import { v4 } from 'uuid';
 import { LoginDto, RegisterDto } from './dto';
 import { Tokens } from './interfaces';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +24,7 @@ export class AuthService {
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
         private readonly prismaService: PrismaService,
+        private readonly mailerService: MailerService,
     ) {}
 
     async refreshTokens(refreshToken: string, agent: string): Promise<Tokens> {
@@ -131,5 +133,32 @@ export class AuthService {
             );
         }
         return this.generateTokens(user, agent);
+    }
+
+    async forgotPassword(email: string) {
+        const user = await this.userService.findOne(email);
+        if (!user) {
+            throw new HttpException('Пользователь не найден', HttpStatus.NOT_FOUND);
+        }
+    
+        const newPassword = Math.random().toString(36).slice(-8);
+        const userEmail = user.email;
+    
+        const updatedUser = await this.userService.resetPasswordDirectly(user.id, newPassword);
+    
+        const message = `
+        <body>
+            <h2>Данные для входа в ваш аккаунт:</h2>
+            <p>Ваш email: ${userEmail}</p>
+            <p>Ваш новый пароль: ${newPassword}</p>
+        </body>`;
+    
+        await this.mailerService.sendMail({
+            to: email,
+            subject: 'Ваш новый пароль',
+            html: message,
+        });
+    
+        return updatedUser;
     }
 }
