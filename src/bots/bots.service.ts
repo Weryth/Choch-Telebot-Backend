@@ -9,24 +9,36 @@ export class BotsService {
 
     private bots = new Map<string, any>();
 
-    launchBot(token: string) {
+    async launchBot(token: string) {
         const botProcess = spawn('node', [`src/bot_ref/userBots/${token}.js`], {
             env: { ...process.env, BOT_TOKEN: token },
         });
         try {
             this.bots.set(token, botProcess);
+            await this.prismaService.bots.update({
+                where: { bottoken: token },
+                data: {
+                    isActive: true,
+                },
+            });
             return { botToken: token, message: 'Bot activated', status: HttpStatus.OK };
         } catch (error) {
             return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    stopBot(token: string) {
+    async stopBot(token: string) {
         const botProcess = this.bots.get(token);
         if (botProcess) {
-            botProcess.kill();
             try {
+                botProcess.kill();
                 this.bots.delete(token);
+                await this.prismaService.bots.update({
+                    where: { bottoken: token },
+                    data: {
+                        isActive: false,
+                    },
+                });
                 return { botToken: token, message: 'Bot has been stoped', status: HttpStatus.OK };
             } catch (error) {}
         }
