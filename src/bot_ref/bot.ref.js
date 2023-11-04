@@ -42,7 +42,7 @@ var prisma = new PrismaClient();
 var openai = new OpenAIClient({ key: process.env.OPENAI_API_KEY });
 var bot = new Telegraf('<<TelegramBotToken>>');
 var botIdDB = '<<botIdDB>>';
-bot.start(function (ctx) { return ctx.reply('Welcome! Send me a question and I will try to answer it.'); });
+bot.start(function (ctx) { return ctx.reply('Здравствуйте! Отправьте мне ваш вопрос, а я постараюсь ответить на него.'); });
 bot.on('text', function (ctx) { return __awaiter(_this, void 0, void 0, function () {
     var userText, questions, questionList, waitmsg, gptResponse, matchedQuestion, qa;
     return __generator(this, function (_a) {
@@ -71,14 +71,11 @@ bot.on('text', function (ctx) { return __awaiter(_this, void 0, void 0, function
                 return [4 /*yield*/, prisma.questions.findFirst({ where: { quest: matchedQuestion } })];
             case 4:
                 qa = _a.sent();
-                return [4 /*yield*/, bot.telegram.deleteMessage(waitmsg.chat.id, waitmsg.message.message_id)];
-            case 5:
-                _a.sent();
                 if (qa && qa.answer) {
                     ctx.reply(qa.answer);
                 }
                 else {
-                    ctx.reply('Sorry, I don’t have an answer to that question.');
+                    ctx.reply('Извините, У меня нет ответа на ваш вопрос, задайте его человеку.');
                 }
                 return [2 /*return*/];
         }

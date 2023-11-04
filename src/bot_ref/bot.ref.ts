@@ -8,7 +8,7 @@ const openai = new OpenAIClient({ key: process.env.OPENAI_API_KEY });
 const bot = new Telegraf('<<TelegramBotToken>>');
 const botIdDB = '<<botIdDB>>';
 
-bot.start((ctx) => ctx.reply('Welcome! Send me a question and I will try to answer it.'));
+bot.start((ctx) => ctx.reply('Здравствуйте! Отправьте мне ваш вопрос, а я постараюсь ответить на него.'));
 
 bot.on('text', async (ctx) => {
     const userText = ctx.message.text;
@@ -31,11 +31,11 @@ bot.on('text', async (ctx) => {
 
     const qa = await prisma.questions.findFirst({ where: { quest: matchedQuestion } });
     
-    await bot.telegram.deleteMessage(waitmsg.chat.id, waitmsg.message.message_id)
+    
     if (qa && qa.answer) {
         ctx.reply(qa.answer);
     } else {
-        ctx.reply('Sorry, I don’t have an answer to that question.');
+        ctx.reply('Извините, У меня нет ответа на ваш вопрос, задайте его человеку.');
     }
 });
 

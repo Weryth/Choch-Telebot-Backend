@@ -2,11 +2,11 @@ import { IsNotEmpty } from "class-validator"
 
 export class QuestDTO{
     @IsNotEmpty()
-    quest: String
+    quest: string
 
     @IsNotEmpty()
-    answer: String
+    answer: string
     
     @IsNotEmpty()
-    botID:String
+    botID: string
 }

@@ -22,6 +22,7 @@ import { createBotDto } from '@auth/dto/createbot.dto';
 import { th } from 'date-fns/locale';
 import { use } from 'passport';
 import { BotTokenDTO } from './user.dto/userbottoken.dto';
+import { QuestDTO } from './user.dto/quest.dto';
 
 @Controller('user')
 export class UserController {
@@ -58,7 +59,7 @@ export class UserController {
     }
 
     
-    @Post('createBot')
+    @Post('create/bot')
     async CreateBot(@Body() createbotdata: createBotDto, @CurrentUser() user: JwtPayload){
         //console.log(user.id)
         if(user.id){
@@ -68,6 +69,12 @@ export class UserController {
             throw new ForbiddenException()
         }
         
+    }
+
+    @Post('create/question')
+    async CreateQuestionForBot(@Body() questionDto: QuestDTO){
+        const result = await this.userService.createQuest(questionDto)
+        return result
     }
 
     @Post('allUserBots')

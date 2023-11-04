@@ -12,6 +12,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     imports: [
         UserModule,
         PrismaModule,
+        BotsModule,
         AuthModule,
         ConfigModule.forRoot({ isGlobal: true }),
         MailerModule.forRootAsync({
