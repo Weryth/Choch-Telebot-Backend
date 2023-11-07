@@ -1,3 +1,5 @@
+import { createBotDto } from '@auth/dto/createbot.dto';
+import { QuestDataDTO } from '@auth/dto/quest.dto';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@prisma/prisma.service';
@@ -42,5 +44,27 @@ export class BotsService {
                 return { botToken: token, message: 'Bot has been stoped', status: HttpStatus.OK };
             } catch (error) {}
         }
+    }
+
+    async TakeAllQuestions(IdBot: string) {
+        const botQuestions = await this.prismaService.questions.findMany({
+            where: {
+                botId: IdBot,
+            },
+        });
+        return botQuestions;
+    }
+
+    async ChangeQuest(questData: QuestDataDTO) {
+        const UpdateQuest = await this.prismaService.questions.update({
+            where: { id: questData.questId },
+            data: { quest: questData.quest, answer: questData.answer },
+        });
+        return UpdateQuest;
+    }
+
+    async DeleteQuest(questId: string) {
+        const deleteQuest = await this.prismaService.questions.delete({ where: { id: questId } });
+        return deleteQuest;
     }
 }
